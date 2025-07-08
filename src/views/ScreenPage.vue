@@ -5,13 +5,29 @@ import Rank from '@/components/Rank.vue';
 import Seller from '@/components/Seller.vue';
 import Stock from '@/components/Stock.vue';
 import Trend from '@/components/Trend.vue';
+import { ref,onMounted,onBeforeUnmount } from 'vue';
 // import axios from 'axios';
-
-async function getData () {
-//  const ret=await axios.get('http://101.35.16.42:8080/api/shopping/map')
-//    console.log(ret.data);
-}
-getData();
+let startTime=Date.now();
+const datetime=ref('');
+const timerId=ref(null);
+// console.log(startTime);
+const formatDate=(ts)=>{ 
+  const date = new Date(ts)
+  const pad = n => n.toString().padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+};
+const startInterval=()=>{
+ timerId.value= setInterval(()=>{
+  startTime+=1000;
+  datetime.value=formatDate(startTime)
+ 
+},1000)};
+onMounted(()=>{
+  startInterval();
+});
+onBeforeUnmount(()=>{
+  clearInterval(timerId.value)
+});
 </script>
 <template>
   <div class="screen-container">
@@ -20,7 +36,7 @@ getData();
       <div class="header-right">
         <!-- 日期时间等 -->
          <div class="title-right">
-          <span class="datetime">2049-01-01 00:00:00</span>
+          <span class="datetime">{{datetime}}</span>
          </div>
       </div>
     </div>
@@ -30,7 +46,7 @@ getData();
             <Trend />
         </div>
         <div id="left-bottom">
-          <Seller />
+          <Seller></Seller>
         </div>
       </section>
       <section class="screen-middle">
@@ -38,7 +54,7 @@ getData();
            <Map />
         </div>
         <div id="middle-bottom">
-        <Rank />
+          <Rank></Rank>
         </div>
       </section>
       <section class="screen-right">
@@ -105,7 +121,7 @@ getData();
     }
     #left-bottom {
       height: 31%;
-      margin-top: 25px;
+      margin-top: 5%;
       position: relative;
     }
   }
@@ -120,7 +136,7 @@ getData();
       position: relative;
     }
     #middle-bottom {
-      margin-top: 25px;
+      margin-top: 5%;
       width: 100%;
       height: 25%;
       position: relative;
@@ -135,7 +151,7 @@ getData();
     }
     #right-bottom {
       height: 38%;
-      margin-top: 25px;
+      margin-top: 5%;
       position: relative;
     }
   }
