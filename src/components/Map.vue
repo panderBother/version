@@ -3,6 +3,7 @@ import { getMap } from '@/api/index'
 import axios from 'axios'
 import * as echarts from 'echarts'
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { getProvinceMapInfo } from '@/utils/map_utils'
 defineOptions({
   name: 'MapPage'
 })
@@ -13,9 +14,10 @@ const mapChartsInstance = ref(null)
 const mapData = ref(null) // 改为 null，初始值应为空
 const isMapDataLoaded = ref(false) // 标记地图数据是否加载完成
 const isMerchantDataLoaded = ref(false) // 标记商户数据是否加载完成
+const provicenData = ref([])
 
 // 初始化地图
-const initMapCharts = () => { 
+const initMapCharts =() => { 
   if (!mapRef.value || !mapData.value) return // 确保 DOM 和数据都已就绪
   mapChartsInstance.value = echarts.init(mapRef.value, 'dark')
   echarts.registerMap('china', mapData.value)
@@ -59,7 +61,23 @@ const initMapCharts = () => {
   }
   
   mapChartsInstance.value.setOption(options)
-  console.log('地图初始化完成')
+  mapChartsInstance.value.on('click',async (arg)=>{
+   const provicenInfo = getProvinceMapInfo(arg.name)
+   
+   if(!provicenData.value[provicenInfo.key]){
+     const ret= await axios.get('http://localhost:5173'+provicenInfo.path)
+      provicenData.value[provicenInfo.key]=ret.data
+      echarts.registerMap(provicenInfo.key,ret.data)
+   }
+   const options = {
+    geo: {
+      map: provicenInfo.key,
+    }
+   }
+   mapChartsInstance.value.setOption(options)
+    // console
+  })
+  // console.log('地图初始化完成')
 }
 
 // 更新图表数据
@@ -142,9 +160,17 @@ onBeforeUnmount(() => {
   screenResize();
   })
 })
+const returnMap = () => { 
+  const option = {
+    geo: { 
+      map: 'china',
+    }, 
+  }
+  mapChartsInstance.value.setOption(option)
+}
 </script>
 <template>
-  <div class="com-container"> 
+  <div class="com-container" @dblclick="returnMap"> 
     <div class="com-chart" ref="mapRef"></div>
 
   </div>
